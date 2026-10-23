@@ -153,7 +153,14 @@ async function getJson(url, options={}){
   if(!res.ok) throw new Error(data.error || data.message || `Request failed (${res.status})`);
   return data;
 }
-async function loadLanguages(){
+
+async function loadLanguages() {
+  languages = defaultLanguages;
+  refreshSelects();
+
+  $("settingsStatus").textContent =
+    "Using the built-in language list. Translation uses the free MyMemory service; no API key is needed.";
+}
   $("settingsStatus").textContent="Loading languages…";
   try{
     const data=await getJson(cleanBase(settings.base)+"/languages");
@@ -166,7 +173,50 @@ async function loadLanguages(){
     $("settingsStatus").textContent="Could not load the server language list. Showing sample languages. Check the API URL or key. "+e.message;
   }
 }
-async function translate(text, source, target){
+
+async function translate(text, source, target) {
+  if (source === "auto") {
+    throw new Error(
+      "Please select your writing language instead of Detect language."
+    );
+  }
+
+  if (new TextEncoder().encode(text).length > 500) {
+    throw new Error(
+      "Free service limit: 500 bytes per request. Please shorten this text."
+    );
+  }
+
+  const params = new URLSearchParams({
+    q: text,
+    langpair: `${source}|${target}`
+  });
+
+  const data = await getJson(
+    "https://api.mymemory.translated.net/get?" +
+    params.toString()
+  );
+
+  if (data.quotaFinished) {
+    throw new Error(
+      "The free daily translation limit has been reached. Please try again tomorrow."
+    );
+  }
+
+  if (data.responseStatus && data.responseStatus !== 200) {
+    throw new Error(
+      data.responseDetails || "Translation service error."
+    );
+  }
+
+  const translated = data.responseData?.translatedText;
+
+  if (!translated) {
+    throw new Error("No translation was returned.");
+  }
+
+  return translated;
+}
   const body={q:text,source:source||"auto",target,format:"text"};
   if(settings.key) body.api_key=settings.key;
   const data=await getJson(cleanBase(settings.base)+"/translate",{
