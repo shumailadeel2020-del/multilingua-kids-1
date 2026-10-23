@@ -159,6 +159,12 @@ async function loadLanguages() {
   refreshSelects();
 
   $("settingsStatus").textContent =
+    "Built-in language options are ready.";
+}
+  languages = defaultLanguages;
+  refreshSelects();
+
+  $("settingsStatus").textContent =
     "Using the built-in language list. Translation uses the free MyMemory service; no API key is needed.";
 }
   $("settingsStatus").textContent="Loading languages…";
