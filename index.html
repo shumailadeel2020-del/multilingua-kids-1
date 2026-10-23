@@ -177,7 +177,12 @@ async function loadLanguages() {
   }catch(e){
     languages=defaultLanguages; refreshSelects();
     $("settingsStatus").textContent="Could not load the server language list. Showing sample languages. Check the API URL or key. "+e.message;
-  }
+  
+async function loadLanguages() {
+  languages = defaultLanguages;
+  refreshSelects();
+  $("settingsStatus").textContent =
+    "Built-in languages loaded. Free MyMemory translation selected.";
 }
 
 async function translate(text, source, target) {
@@ -189,24 +194,21 @@ async function translate(text, source, target) {
 
   if (new TextEncoder().encode(text).length > 500) {
     throw new Error(
-      "Free service limit: 500 bytes per request. Please shorten this text."
+      "This free service accepts up to 500 bytes per request. Shorten the text."
     );
   }
 
   const params = new URLSearchParams({
     q: text,
-    langpair: `${source}|${target}`
+    langpair: source + "|" + target
   });
 
   const data = await getJson(
-    "https://api.mymemory.translated.net/get?" +
-    params.toString()
+    "https://api.mymemory.translated.net/get?" + params.toString()
   );
 
   if (data.quotaFinished) {
-    throw new Error(
-      "The free daily translation limit has been reached. Please try again tomorrow."
-    );
+    throw new Error("The free translation quota has been reached.");
   }
 
   if (data.responseStatus && data.responseStatus !== 200) {
@@ -222,15 +224,7 @@ async function translate(text, source, target) {
   }
 
   return translated;
-}
-  const body={q:text,source:source||"auto",target,format:"text"};
-  if(settings.key) body.api_key=settings.key;
-  const data=await getJson(cleanBase(settings.base)+"/translate",{
-    method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(body)
-  });
-  if(!data.translatedText) throw new Error("No translation was returned.");
-  return data.translatedText;
-}
+    }
 function saveHistory(item){
   history.unshift({...item,at:new Date().toISOString()});
   history=history.slice(0,50); localStorage.setItem("mlk_history",JSON.stringify(history)); renderHistory();
