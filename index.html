@@ -1,0 +1,283 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#2c7be5">
+<title>MultiLingua Kids</title>
+<style>
+:root{--blue:#2878e5;--navy:#17345f;--bg:#f3f8ff;--card:#fff;--line:#d8e6fa;--green:#dff8e7;--pink:#fff0f5;--yellow:#fff6d8}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);font-family:system-ui,-apple-system,Segoe UI,sans-serif;color:var(--navy)}
+header{background:linear-gradient(120deg,#2c7be5,#54b9ee);color:#fff;padding:18px 16px 22px;border-radius:0 0 24px 24px}
+header h1{margin:0;font-size:1.5rem}header p{margin:5px 0 0;font-size:.95rem}
+main{max-width:850px;margin:0 auto;padding:14px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:14px;margin-bottom:14px;box-shadow:0 4px 14px #16345f0a}
+label{display:block;font-weight:700;font-size:.9rem;margin-bottom:6px}
+select,input,textarea,button{font:inherit}
+select,input,textarea{width:100%;border:1px solid #bfd3f1;border-radius:12px;padding:11px;background:#fff;color:var(--navy)}
+textarea{min-height:105px;resize:vertical}
+.grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.langbox{min-width:0}.langbox select{padding:9px 5px;font-size:.88rem}
+.btnrow{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+button,.filelabel{border:0;border-radius:12px;padding:11px 14px;background:var(--blue);color:#fff;font-weight:700;cursor:pointer}
+button.secondary,.filelabel.secondary{background:#edf4ff;color:var(--navy);border:1px solid var(--line)}
+button:disabled{opacity:.55;cursor:wait}
+#translateBtn{width:100%;margin-top:10px;font-size:1.05rem}
+.results{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.result{border-radius:15px;padding:12px;background:#edf6ff;border:1px solid var(--line);min-width:0}
+.result:nth-child(2){background:#e9faef}.result h3{font-size:.9rem;margin:0 0 9px}
+.result p{white-space:pre-wrap;overflow-wrap:anywhere;margin:0 0 10px;font-size:1.05rem;min-height:25px}
+.small{font-size:.82rem;color:#526b8f}.status{margin-top:10px;font-size:.9rem;min-height:1.2em}
+.history-item{padding:10px 0;border-bottom:1px solid var(--line)}.history-item:last-child{border-bottom:0}
+.history-item strong{display:block}.history-item button{margin-top:6px}
+details summary{font-weight:800;cursor:pointer}
+input[type=file]{display:none}
+footer{text-align:center;padding:8px 12px 24px;font-size:.8rem;color:#607697}
+@media(max-width:520px){.grid{gap:5px}.langbox select{font-size:.78rem;padding:8px 2px}.results{grid-template-columns:1fr}.result p{min-height:0}header h1{font-size:1.35rem}}
+</style>
+</head>
+<body>
+<header>
+  <h1>🌍 MultiLingua Kids</h1>
+  <p>One word, many languages. Learn a little every day!</p>
+</header>
+<main>
+  <section class="card">
+    <div class="grid">
+      <div class="langbox"><label for="sourceLang">I am writing in</label><select id="sourceLang"><option value="auto">Detect language</option></select></div>
+      <div class="langbox"><label for="targetLang1">Language 2</label><select id="targetLang1"></select></div>
+      <div class="langbox"><label for="targetLang2">Language 3</label><select id="targetLang2"></select></div>
+    </div>
+    <div style="margin-top:14px">
+      <label for="sourceText">Type a word or sentence</label>
+      <textarea id="sourceText" maxlength="5000" placeholder="For example: Good morning!"></textarea>
+      <div class="small"><span id="charCount">0</span>/5000 characters</div>
+    </div>
+    <button id="translateBtn">✨ Translate into both languages</button>
+    <div id="status" class="status" role="status" aria-live="polite"></div>
+  </section>
+
+  <section class="card">
+    <h2 style="margin:0 0 12px;font-size:1.15rem">Your translations</h2>
+    <div class="results">
+      <article class="result">
+        <h3 id="heading1">Language 2</h3><p id="output1">Your translation will appear here.</p>
+        <div class="btnrow"><button class="secondary" id="copy1">📋 Copy</button><button class="secondary" id="speak1">🔊 Listen</button></div>
+      </article>
+      <article class="result">
+        <h3 id="heading2">Language 3</h3><p id="output2">Your translation will appear here.</p>
+        <div class="btnrow"><button class="secondary" id="copy2">📋 Copy</button><button class="secondary" id="speak2">🔊 Listen</button></div>
+      </article>
+    </div>
+    <div class="btnrow"><button class="secondary" id="copyAll">Copy all results</button></div>
+  </section>
+
+  <section class="card">
+    <details>
+      <summary>📚 Vocabulary spreadsheet</summary>
+      <p class="small">Import a CSV or Excel (.xlsx) file with a column named <b>text</b> or <b>source</b>. Optional column: <b>sourceLang</b>. Then translate each row into the two selected target languages.</p>
+      <div class="btnrow">
+        <label class="filelabel secondary" for="fileInput">Choose CSV / Excel file</label>
+        <input id="fileInput" type="file" accept=".csv,.xlsx,.xls">
+        <button id="translateSheet">Translate imported rows</button>
+        <button id="exportCsv" class="secondary">Export CSV</button>
+        <button id="exportXlsx" class="secondary">Export Excel</button>
+      </div>
+      <div id="sheetStatus" class="status"></div>
+      <div id="sheetPreview" class="small"></div>
+    </details>
+  </section>
+
+  <section class="card">
+    <details>
+      <summary>🕘 Recent translations</summary>
+      <div class="btnrow"><button class="secondary" id="clearHistory">Clear history</button></div>
+      <div id="historyList" class="small">Your recent translations will appear here.</div>
+    </details>
+  </section>
+
+  <section class="card">
+    <details>
+      <summary>⚙️ Translation settings</summary>
+      <p class="small">The server controls which languages work. Use a trusted provider. If a provider requires an API key, enter it here; this prototype saves settings only in this browser. Do not use this field for a secret key on a shared device.</p>
+      <label for="apiBase">Translation API base URL</label>
+      <input id="apiBase" value="https://libretranslate.com" placeholder="https://your-translation-server.example">
+      <label for="apiKey" style="margin-top:10px">API key (if required)</label>
+      <input id="apiKey" type="password" autocomplete="off" placeholder="Optional API key">
+      <div class="btnrow"><button id="saveSettings">Save settings</button><button class="secondary" id="reloadLanguages">Reload languages</button></div>
+      <div id="settingsStatus" class="status"></div>
+    </details>
+  </section>
+  <p class="small">Learning tool, not a certified translation service. Translation quality varies by language. An internet connection is required.</p>
+</main>
+<footer>Made for curious young language learners 💙</footer>
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<script>
+const $ = id => document.getElementById(id);
+const defaultLanguages = [
+ {code:"en",name:"English"},{code:"ur",name:"Urdu"},{code:"ar",name:"Arabic"},
+ {code:"es",name:"Spanish"},{code:"fr",name:"French"},{code:"de",name:"German"},
+ {code:"zh",name:"Chinese"},{code:"pt",name:"Portuguese"},{code:"ru",name:"Russian"},
+ {code:"tr",name:"Turkish"},{code:"it",name:"Italian"},{code:"ja",name:"Japanese"},
+ {code:"ko",name:"Korean"},{code:"hi",name:"Hindi"},{code:"bn",name:"Bengali"},
+ {code:"nl",name:"Dutch"},{code:"pl",name:"Polish"},{code:"uk",name:"Ukrainian"}
+];
+let languages = defaultLanguages;
+let rows = [];
+let history = JSON.parse(localStorage.getItem("mlk_history") || "[]");
+let settings = JSON.parse(localStorage.getItem("mlk_settings") || '{"base":"https://libretranslate.com","key":""}');
+
+function cleanBase(v){return v.trim().replace(/\/+$/,"");}
+function fillSelect(select, includeAuto=false, selected="") {
+  select.innerHTML = "";
+  if(includeAuto) select.add(new Option("Detect language","auto"));
+  languages.forEach(l=>select.add(new Option(l.name+" ("+l.code+")",l.code)));
+  if(selected && [...select.options].some(o=>o.value===selected)) select.value=selected;
+}
+function refreshSelects(){
+  const oldS=$("sourceLang").value || "auto", old1=$("targetLang1").value || "ur", old2=$("targetLang2").value || "ar";
+  fillSelect($("sourceLang"),true,oldS); fillSelect($("targetLang1"),false,old1); fillSelect($("targetLang2"),false,old2);
+  if(!$("targetLang1").value) $("targetLang1").value=languages.find(l=>l.code==="ur")?.code || languages[0]?.code;
+  if(!$("targetLang2").value) $("targetLang2").value=languages.find(l=>l.code==="ar")?.code || languages[1]?.code;
+  updateHeadings();
+}
+function langName(code){return code==="auto"?"Detected language":languages.find(l=>l.code===code)?.name || code;}
+function updateHeadings(){
+  $("heading1").textContent=langName($("targetLang1").value);
+  $("heading2").textContent=langName($("targetLang2").value);
+}
+function sayStatus(text){$("status").textContent=text;}
+async function getJson(url, options={}){
+  const res=await fetch(url,options);
+  const data=await res.json().catch(()=>({}));
+  if(!res.ok) throw new Error(data.error || data.message || `Request failed (${res.status})`);
+  return data;
+}
+async function loadLanguages(){
+  $("settingsStatus").textContent="Loading languages…";
+  try{
+    const data=await getJson(cleanBase(settings.base)+"/languages");
+    if(!Array.isArray(data)||!data.length) throw new Error("The server returned no language list.");
+    languages=data.map(x=>({code:x.code,name:x.name})).filter(x=>x.code&&x.name);
+    refreshSelects();
+    $("settingsStatus").textContent=`Loaded ${languages.length} languages from the server.`;
+  }catch(e){
+    languages=defaultLanguages; refreshSelects();
+    $("settingsStatus").textContent="Could not load the server language list. Showing sample languages. Check the API URL or key. "+e.message;
+  }
+}
+async function translate(text, source, target){
+  const body={q:text,source:source||"auto",target,format:"text"};
+  if(settings.key) body.api_key=settings.key;
+  const data=await getJson(cleanBase(settings.base)+"/translate",{
+    method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(body)
+  });
+  if(!data.translatedText) throw new Error("No translation was returned.");
+  return data.translatedText;
+}
+function saveHistory(item){
+  history.unshift({...item,at:new Date().toISOString()});
+  history=history.slice(0,50); localStorage.setItem("mlk_history",JSON.stringify(history)); renderHistory();
+}
+async function runTranslation(){
+  const text=$("sourceText").value.trim(), source=$("sourceLang").value, t1=$("targetLang1").value, t2=$("targetLang2").value;
+  if(!text){sayStatus("Please type a word or sentence first.");return;}
+  if(!t1||!t2){sayStatus("Choose two target languages.");return;}
+  if(t1===t2){sayStatus("Please choose two different target languages.");return;}
+  $("translateBtn").disabled=true; sayStatus("Translating…");
+  $("output1").textContent="Working…"; $("output2").textContent="Working…"; updateHeadings();
+  try{
+    const results=await Promise.all([translate(text,source,t1),translate(text,source,t2)]);
+    $("output1").textContent=results[0]; $("output2").textContent=results[1];
+    saveHistory({text,source,t1,result1:results[0],t2,result2:results[1]});
+    sayStatus("Done! Try listening to each translation.");
+  }catch(e){
+    $("output1").textContent="Translation unavailable."; $("output2").textContent="Translation unavailable.";
+    sayStatus("Could not translate: "+e.message+" — check internet, API URL, language support or API key.");
+  }finally{$("translateBtn").disabled=false;}
+}
+async function copyText(text){
+  try{await navigator.clipboard.writeText(text);sayStatus("Copied!");}
+  catch(e){sayStatus("Copy is blocked by this browser. Select the text and copy it manually.");}
+}
+function speak(text,code){
+  if(!text||text==="Translation unavailable.")return;
+  if(!("speechSynthesis" in window)){sayStatus("Speech playback is not supported in this browser.");return;}
+  speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(text);
+  u.lang=code==="auto"?"en":code; speechSynthesis.speak(u);
+}
+function renderHistory(){
+  const box=$("historyList");
+  if(!history.length){box.textContent="No translations saved yet.";return;}
+  box.innerHTML="";
+  history.slice(0,15).forEach((h,i)=>{
+    const div=document.createElement("div");div.className="history-item";
+    const strong=document.createElement("strong");strong.textContent=h.text;
+    const detail=document.createElement("div");detail.textContent=`${langName(h.t1)}: ${h.result1} · ${langName(h.t2)}: ${h.result2}`;
+    const btn=document.createElement("button");btn.className="secondary";btn.textContent="Use again";
+    btn.onclick=()=>{$("sourceText").value=h.text;$("sourceLang").value=h.source;$("targetLang1").value=h.t1;$("targetLang2").value=h.t2;$("charCount").textContent=h.text.length;updateHeadings();window.scrollTo({top:0,behavior:"smooth"});};
+    div.append(strong,detail,btn);box.append(div);
+  });
+}
+function downloadBlob(content,type,name){
+  const blob=new Blob([content],{type});const url=URL.createObjectURL(blob);
+  const a=document.createElement("a");a.href=url;a.download=name;a.click();URL.revokeObjectURL(url);
+}
+function csvEscape(v){return '"'+String(v??"").replace(/"/g,'""')+'"';}
+function exportCSV(){
+  if(!rows.length){$("sheetStatus").textContent="Import a spreadsheet or translate rows first.";return;}
+  const keys=Object.keys(rows[0]);const csv=[keys.map(csvEscape).join(","),...rows.map(r=>keys.map(k=>csvEscape(r[k])).join(","))].join("\r\n");
+  downloadBlob("\ufeff"+csv,"text/csv;charset=utf-8","multilingua-translations.csv");
+}
+function exportXLSX(){
+  if(!rows.length){$("sheetStatus").textContent="Import a spreadsheet or translate rows first.";return;}
+  if(!window.XLSX){$("sheetStatus").textContent="Excel library did not load. Export CSV instead.";return;}
+  const wb=XLSX.utils.book_new();const ws=XLSX.utils.json_to_sheet(rows);XLSX.utils.book_append_sheet(wb,ws,"Translations");XLSX.writeFile(wb,"multilingua-translations.xlsx");
+}
+$("translateBtn").onclick=runTranslation;
+$("sourceText").addEventListener("input",()=>{$("charCount").textContent=$("sourceText").value.length;});
+$("targetLang1").onchange=updateHeadings;$("targetLang2").onchange=updateHeadings;
+$("copy1").onclick=()=>copyText($("output1").textContent);
+$("copy2").onclick=()=>copyText($("output2").textContent);
+$("copyAll").onclick=()=>copyText(`${langName($("targetLang1").value)}: ${$("output1").textContent}\n${langName($("targetLang2").value)}: ${$("output2").textContent}`);
+$("speak1").onclick=()=>speak($("output1").textContent,$("targetLang1").value);
+$("speak2").onclick=()=>speak($("output2").textContent,$("targetLang2").value);
+$("saveSettings").onclick=()=>{settings={base:cleanBase($("apiBase").value)||"https://libretranslate.com",key:$("apiKey").value.trim()};localStorage.setItem("mlk_settings",JSON.stringify(settings));$("settingsStatus").textContent="Settings saved on this device.";loadLanguages();};
+$("reloadLanguages").onclick=loadLanguages;
+$("apiBase").value=settings.base;$("apiKey").value=settings.key;
+$("clearHistory").onclick=()=>{if(confirm("Clear saved translation history on this device?")){history=[];localStorage.removeItem("mlk_history");renderHistory();}};
+$("exportCsv").onclick=exportCSV;$("exportXlsx").onclick=exportXLSX;
+$("fileInput").onchange=async e=>{
+ const f=e.target.files[0];if(!f)return;
+ try{
+  if(!window.XLSX)throw new Error("Spreadsheet library did not load. Check your internet connection.");
+  const data=await f.arrayBuffer();const wb=XLSX.read(data,{type:"array"});const ws=wb.Sheets[wb.SheetNames[0]];
+  const raw=XLSX.utils.sheet_to_json(ws,{defval:""});
+  rows=raw.map(r=>({...r}));
+  $("sheetStatus").textContent=`Imported ${rows.length} rows.`;
+  $("sheetPreview").textContent=rows.slice(0,3).map((r,i)=>`${i+1}. ${JSON.stringify(r)}`).join(" · ");
+ }catch(err){$("sheetStatus").textContent="Import failed: "+err.message;}
+};
+$("translateSheet").onclick=async()=>{
+ if(!rows.length){$("sheetStatus").textContent="Choose a spreadsheet first.";return;}
+ const first=rows[0], key=Object.keys(first).find(k=>["text","source","word","sentence"].includes(k.toLowerCase()));
+ if(!key){$("sheetStatus").textContent='Could not find a text column. Name it "text", "source", "word" or "sentence".';return;}
+ const sourceDefault=$("sourceLang").value,t1=$("targetLang1").value,t2=$("targetLang2").value;
+ $("translateSheet").disabled=true;$("sheetStatus").textContent="Translating rows… please keep this page open.";
+ try{
+  for(let i=0;i<rows.length;i++){
+   const item=String(rows[i][key]??"").trim();if(!item)continue;
+   const src=rows[i].sourceLang || sourceDefault;
+   rows[i][t1]=await translate(item,src,t1);
+   rows[i][t2]=await translate(item,src,t2);
+   $("sheetStatus").textContent=`Translated ${i+1} of ${rows.length} rows…`;
+  }
+  $("sheetStatus").textContent=`Finished ${rows.length} rows. Export as CSV or Excel.`;
+  $("sheetPreview").textContent=rows.slice(0,3).map((r,i)=>`${i+1}. ${JSON.stringify(r)}`).join(" · ");
+ }catch(err){$("sheetStatus").textContent="Stopped on an error: "+err.message+". Some rows may already be translated; you can export them.";}
+ finally{$("translateSheet").disabled=false;}
+};
+refreshSelects();renderHistory();loadLanguages();
+</script>
+</body>
+</html>
